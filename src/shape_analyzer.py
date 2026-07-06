@@ -18,9 +18,9 @@ class ShapeAnalyzer:
         if self.image is None:
             raise FileNotFoundError(f"File couldn't be found.\n")
 
-    def preprocess(self):
+    def preprocess(self, low = 70, high = 100):
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        self.canny_image = cv2.Canny(gray_image, 70, 100)
+        self.canny_image = cv2.Canny(gray_image, low, high)
 
     def detect_contours(self):
         self.contours, self.hierarchy = cv2.findContours(
