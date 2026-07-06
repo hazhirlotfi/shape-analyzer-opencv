@@ -38,8 +38,12 @@ class ShapeAnalyzer:
         plt.imshow(self.image)
         plt.show()
 
+    def save_result(self):
+        cv2.imwrite(PROJECT_ROOT / "results" / "result.jpg", self.image)
+
     def run(self):
         self.load_image()
         self.preprocess()
         self.detect_contours()
         self.draw_results()
+        self.save_result()
