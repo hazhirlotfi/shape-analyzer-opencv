@@ -7,7 +7,7 @@ IMAGE_PATH = PROJECT_ROOT / "images" / "test1.jpg"
 
 
 class ShapeAnalyzer:
-    def __init__(self):
+    def __init__(self, image_path=IMAGE_PATH):
         self.image = None
         self.canny_image = None
         self.contours = None
@@ -18,7 +18,7 @@ class ShapeAnalyzer:
         if self.image is None:
             raise FileNotFoundError(f"File couldn't be found.\n")
 
-    def preprocess(self, low = 70, high = 100):
+    def preprocess(self, low=70, high=100):
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         self.canny_image = cv2.Canny(gray_image, low, high)
 

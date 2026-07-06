@@ -1,4 +1,5 @@
-import shape_analyzer as _
+from shape_analyzer import ShapeAnalyzer, PROJECT_ROOT
+from pathlib import Path
 
-shape = _.ShapeAnalyzer()
+shape = ShapeAnalyzer()
 shape.run()
