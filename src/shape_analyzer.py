@@ -8,13 +8,14 @@ IMAGE_PATH = PROJECT_ROOT / "images" / "test1.jpg"
 
 class ShapeAnalyzer:
     def __init__(self, image_path=IMAGE_PATH):
+        self.image_path = image_path
         self.image = None
         self.canny_image = None
         self.contours = None
         self.hierarchy = None
 
     def load_image(self):
-        self.image = cv2.imread(str(IMAGE_PATH))
+        self.image = cv2.imread(str(self.image_path))
         if self.image is None:
             raise FileNotFoundError(f"File couldn't be found.\n")
 
