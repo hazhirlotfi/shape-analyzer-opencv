@@ -3,12 +3,15 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-IMAGE_PATH = PROJECT_ROOT / "images" / "test1.jpg"
+RESULTS_DIR = PROJECT_ROOT / "results"
 
 
 class ShapeAnalyzer:
-    def __init__(self, image_path=IMAGE_PATH):
-        self.image_path = image_path
+    def __init__(self, image_path):
+        self.image_path = Path(image_path)
+        self._reset_state()
+
+    def _reset_state(self):
         self.image = None
         self.canny_image = None
         self.contours = None
@@ -17,18 +20,24 @@ class ShapeAnalyzer:
     def load_image(self):
         self.image = cv2.imread(str(self.image_path))
         if self.image is None:
-            raise FileNotFoundError(f"File couldn't be found.\n")
+            raise FileNotFoundError(f"File couldn't be found: {self.image_path}")
 
     def preprocess(self, low=70, high=100):
+        if self.image is None:
+            raise RuntimeError("preprocess() called before load_image()")
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         self.canny_image = cv2.Canny(gray_image, low, high)
 
     def detect_contours(self):
+        if self.canny_image is None:
+            raise RuntimeError("detect_contours() called before preprocess()")
         self.contours, self.hierarchy = cv2.findContours(
             self.canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE
         )
 
     def draw_results(self):
+        if self.contours is None:
+            raise RuntimeError("draw_results() called before detect_contours()")
         size = 10
         h, w = self.image.shape[:2]
         aspect_ratio = w / h
@@ -39,9 +48,15 @@ class ShapeAnalyzer:
         plt.show()
 
     def save_result(self):
-        cv2.imwrite(PROJECT_ROOT / "results" / "result.jpg", self.image)
+        if self.image is None:
+            raise RuntimeError("save_result() called before load_image()")
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(RESULTS_DIR / "result.jpg"), self.image)
 
-    def run(self):
+    def run(self, image_path=None):
+        if image_path is not None:
+            self.image_path = Path(image_path)
+        self._reset_state()
         self.load_image()
         self.preprocess()
         self.detect_contours()
