@@ -9,7 +9,7 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 class ShapeAnalyzer:
     def __init__(self, image_path):
         self.image_path = Path(image_path)
-        if self.image_path.exists() is None:
+        if self.image_path.exists() is False:
             raise FileNotFoundError(f"File couldn't be found: {self.image_path}")
         self._reset_state()
 
@@ -58,6 +58,7 @@ class ShapeAnalyzer:
     def run(self, image_path=None):
         if image_path is not None:
             self.image_path = Path(image_path)
+            
         self._reset_state()
         self.load_image()
         self.preprocess()
