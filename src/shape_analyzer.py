@@ -15,6 +15,7 @@ class ShapeAnalyzer:
 
     def _reset_state(self):
         self.image = None
+        self.gray_image = None
         self.canny_image = None
         self.contours = None
         self.hierarchy = None
@@ -29,9 +30,9 @@ class ShapeAnalyzer:
     def preprocess(self, low=70, high=100):
         if self.image is None:
             raise RuntimeError("preprocess() called before load_image()")
-        gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        anti_noise_removal = cv2.bilateralFilter(gray_image, 5, 60, 60)
-        self.canny_image = cv2.Canny(anti_noise_removal, low, high)
+        self.gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        gaussian_blur_filter = cv2.GaussianBlur(self.gray_image, (5, 5), 0)
+        self.canny_image = cv2.Canny(gaussian_blur_filter, low, high)
 
     def detect_contours(self):
         if self.canny_image is None:
@@ -82,7 +83,8 @@ class ShapeAnalyzer:
         aspect_ratio = w / h
         plt.figure(figsize=(size * aspect_ratio, size))
         plt.title("CONTOURS DRAWN")
-        plt.imshow(self.image)
+        rgb_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        plt.imshow(rgb_image)
         plt.show()
 
     def save_result(self):
@@ -93,7 +95,7 @@ class ShapeAnalyzer:
 
     def process(self):
         self.load_image()
-        self.preprocess()
+        self.preprocess(low=30)
         self.detect_contours()
 
     def visualize(self):
