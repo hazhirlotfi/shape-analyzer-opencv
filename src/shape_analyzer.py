@@ -19,6 +19,7 @@ class ShapeAnalyzer:
         self.contours = None
         self.hierarchy = None
         self.contour_count = None
+        self.shape_data = []
 
     def load_image(self):
         self.image = cv2.imread(str(self.image_path))
@@ -41,10 +42,39 @@ class ShapeAnalyzer:
         self.contour_count = len(self.contours)
         print(f"{self.image_path.name} has {self.contour_count} contours.")
 
+        for contour in self.contours:
+            perimeter = cv2.arcLength(contour, True)
+            epsilon = 0.009 * perimeter
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+
+            points = len(approx)
+
+            if points == 3:
+                shape_name = "triangle"
+            elif points == 4:
+                shape_name = "quadrilateral (probably square :)"
+            elif points == 5:
+                shape_name = "pentagon"
+            else:
+                shape_name = "circle / oval"
+
+            self.shape_data.append(
+                {
+                    "contour": contour,
+                    "approx": approx,
+                    "name": shape_name,
+                    "points": points,
+                    "area": cv2.contourArea(contour),
+                    "perimeter": perimeter,
+                }
+            )
+
     def draw_results(self):
         if self.contours is None:
             raise RuntimeError("draw_results() called before detect_contours()")
-        cv2.drawContours(self.image, self.contours, -1, (255, 0, 0), 5)
+
+        for i, shapes in enumerate(self.shape_data):
+            cv2.drawContours(self.image, [shapes["approx"]], -1, (255, 0, 0), 5)
 
     def show_results(self):
         size = 10
