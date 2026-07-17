@@ -7,4 +7,3 @@ image_path = PROJECT_ROOT / "images"
 for img_path in image_path.iterdir():
     shape = ShapeAnalyzer(img_path)
     shape.run()
- 

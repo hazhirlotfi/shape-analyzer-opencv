@@ -20,6 +20,7 @@ class ShapeAnalyzer:
         self.contours = None
         self.hierarchy = None
         self.contour_count = None
+        self.filtered_area = []
         self.shape_data = []
 
     def load_image(self):
@@ -70,11 +71,16 @@ class ShapeAnalyzer:
                 }
             )
 
+    def filter_contours(self, min_area=150):
+        for each_shape in self.shape_data:
+            if each_shape["area"] > min_area:
+                self.filtered_area.append(each_shape)
+
     def draw_results(self):
         if self.contours is None:
             raise RuntimeError("draw_results() called before detect_contours()")
 
-        for i, shapes in enumerate(self.shape_data):
+        for i, shapes in enumerate(self.filtered_area):
             cv2.drawContours(self.image, [shapes["approx"]], -1, (255, 0, 0), 5)
 
     def show_results(self):
@@ -97,6 +103,7 @@ class ShapeAnalyzer:
         self.load_image()
         self.preprocess(low=30)
         self.detect_contours()
+        self.filter_contours()
 
     def visualize(self):
         self.draw_results()
