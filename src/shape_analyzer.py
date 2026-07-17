@@ -29,7 +29,8 @@ class ShapeAnalyzer:
         if self.image is None:
             raise RuntimeError("preprocess() called before load_image()")
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        self.canny_image = cv2.Canny(gray_image, low, high)
+        anti_noise_removal = cv2.bilateralFilter(gray_image, 5, 60, 60)
+        self.canny_image = cv2.Canny(anti_noise_removal, low, high)
 
     def detect_contours(self):
         if self.canny_image is None:
