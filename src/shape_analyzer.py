@@ -28,12 +28,16 @@ class ShapeAnalyzer:
         if self.image is None:
             raise FileNotFoundError(f"File couldn't be found: {self.image_path}")
 
-    def preprocess(self, low=70, high=100):
+    def preprocess(self, low=70, high=100, close_size=5, close_iterations=2):
         if self.image is None:
             raise RuntimeError("preprocess() called before load_image()")
         self.gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         gaussian_blur_filter = cv2.GaussianBlur(self.gray_image, (5, 5), 0)
-        self.canny_image = cv2.Canny(gaussian_blur_filter, low, high)
+        edges = cv2.Canny(gaussian_blur_filter, low, high)
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (close_size, close_size))
+        self.canny_image = cv2.morphologyEx(
+            edges, cv2.MORPH_CLOSE, kernel, iterations=close_iterations
+        )
 
     def detect_contours(self):
         if self.canny_image is None:
@@ -46,7 +50,7 @@ class ShapeAnalyzer:
 
         for contour in self.contours:
             perimeter = cv2.arcLength(contour, True)
-            epsilon = 0.009 * perimeter
+            epsilon = 0.0009 * perimeter
             approx = cv2.approxPolyDP(contour, epsilon, True)
 
             points = len(approx)
@@ -71,9 +75,28 @@ class ShapeAnalyzer:
                 }
             )
 
-    def filter_contours(self, min_area=150):
+    def filter_contours(
+        self,
+        relative_area=0.03,
+        relative_perimeter=0.1,
+        min_area=None,
+        min_perimeter=None,
+    ):
+        areas = [shape["area"] for shape in self.shape_data]
+        perimeters = [shape["perimeter"] for shape in self.shape_data]
+
+        if relative_area and min_area is None and areas:
+            min_area = relative_area * max(areas)
+        if relative_perimeter and min_perimeter is None and perimeters:
+            min_perimeter = relative_perimeter * max(perimeters)
+
+        self.filtered_area = []
         for each_shape in self.shape_data:
-            if each_shape["area"] > min_area:
+            passes_area = min_area is not None and each_shape["area"] > min_area
+            passes_perimeter = (
+                min_perimeter is not None and each_shape["perimeter"] > min_perimeter
+            )
+            if passes_area or passes_perimeter:
                 self.filtered_area.append(each_shape)
 
     def draw_results(self):
