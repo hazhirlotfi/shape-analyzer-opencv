@@ -1,6 +1,7 @@
 import cv2, numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
+import json
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = PROJECT_ROOT / "results"
@@ -120,13 +121,34 @@ class ShapeAnalyzer:
         if self.image is None:
             raise RuntimeError("save_result() called before load_image()")
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-        cv2.imwrite(str(RESULTS_DIR / "result.jpg"), self.image)
+        cv2.imwrite(str(RESULTS_DIR / self.image_path.name), self.image)
+
+    def json_result(self):
+        json_data = []
+        for each_shape in self.shape_data:
+            json_pass = {
+                "name": each_shape["name"],
+                "points": int(each_shape["points"]),
+                "area": float(each_shape["area"]),
+                "perimeter": float(each_shape["perimeter"]),
+            }
+            json_data.append(json_pass)
+        json_logs = json.dumps(json_data)
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        json_path = RESULTS_DIR / f"{self.image_path.stem}_results.json"
+
+        with open(json_path, "w") as f:
+            json.dump(json_data, f, indent=2)
+
+        print(f"JSON saved to: {json_path}")
 
     def process(self):
         self.load_image()
         self.preprocess(low=30)
         self.detect_contours()
         self.filter_contours()
+        self.json_result()
+        self.save_result()
 
     def visualize(self):
         self.draw_results()
@@ -138,4 +160,3 @@ class ShapeAnalyzer:
 
         self.process()
         self.visualize()
-        self.save_result()
