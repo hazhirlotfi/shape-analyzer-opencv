@@ -11,10 +11,10 @@ The current implementation focuses on the image processing pipeline required for
 - Apply Canny edge detection
 - Detect contours
 - Draw detected contours
-
-## Planned Features
-
 - Calculate shape area
 - Calculate shape perimeter
 - Identify basic geometric shapes
+
+## Planned Features
+
 - Display measurements on the image
