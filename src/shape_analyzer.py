@@ -29,13 +29,19 @@ class ShapeAnalyzer:
         if self.image is None:
             raise FileNotFoundError(f"File couldn't be found: {self.image_path}")
 
-    def preprocess(self, low=70, high=100, close_size=5, close_iterations=2):
+    def preprocess(self, low=45, high=80, close_size=5, close_iterations=2):
         if self.image is None:
             raise RuntimeError("preprocess() called before load_image()")
         self.gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+
         gaussian_blur_filter = cv2.GaussianBlur(self.gray_image, (5, 5), 0)
-        edges = cv2.Canny(gaussian_blur_filter, low, high)
+
+        median_blur_filter = cv2.medianBlur(gaussian_blur_filter, (7))
+
+        edges = cv2.Canny(median_blur_filter, low, high)
+
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (close_size, close_size))
+
         self.canny_image = cv2.morphologyEx(
             edges, cv2.MORPH_CLOSE, kernel, iterations=close_iterations
         )
@@ -51,7 +57,10 @@ class ShapeAnalyzer:
 
         for contour in self.contours:
             perimeter = cv2.arcLength(contour, True)
-            epsilon = 0.0009 * perimeter
+            if self.shape_data and self.shape_data[0]["name"] == "circle / oval":
+                epsilon = 0.0001 * perimeter
+            else:
+                epsilon = 0.009 * perimeter
             approx = cv2.approxPolyDP(contour, epsilon, True)
 
             points = len(approx)
@@ -128,6 +137,7 @@ class ShapeAnalyzer:
         for each_shape in self.shape_data:
             json_pass = {
                 "name": each_shape["name"],
+                "array": each_shape["approx"].tolist(),
                 "points": int(each_shape["points"]),
                 "area": float(each_shape["area"]),
                 "perimeter": float(each_shape["perimeter"]),
@@ -144,7 +154,7 @@ class ShapeAnalyzer:
 
     def process(self):
         self.load_image()
-        self.preprocess(low=30)
+        self.preprocess()
         self.detect_contours()
         self.filter_contours()
         self.json_result()
