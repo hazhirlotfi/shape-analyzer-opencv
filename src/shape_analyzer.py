@@ -29,7 +29,7 @@ class ShapeAnalyzer:
         if self.image is None:
             raise FileNotFoundError(f"File couldn't be found: {self.image_path}")
 
-    def preprocess(self, low=45, high=80, close_size=5, close_iterations=2):
+    def preprocess(self, low=20, high=90, close_size=5, close_iterations=2):
         if self.image is None:
             raise RuntimeError("preprocess() called before load_image()")
         self.gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
@@ -41,6 +41,9 @@ class ShapeAnalyzer:
         edges = cv2.Canny(median_blur_filter, low, high)
 
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (close_size, close_size))
+
+        edges = cv2.dilate(edges, kernel, iterations=2)
+        edges = cv2.erode(edges, kernel, iterations=2)
 
         self.canny_image = cv2.morphologyEx(
             edges, cv2.MORPH_CLOSE, kernel, iterations=close_iterations
