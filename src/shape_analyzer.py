@@ -40,13 +40,16 @@ class ShapeAnalyzer:
 
         edges = cv2.Canny(median_blur_filter, low, high)
 
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (close_size, close_size))
+        kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (close_size, close_size))
 
         edges = cv2.dilate(edges, kernel, iterations=2)
         edges = cv2.erode(edges, kernel, iterations=2)
 
         self.canny_image = cv2.morphologyEx(
-            edges, cv2.MORPH_CLOSE, kernel, iterations=close_iterations
+            edges,
+            cv2.MORPH_CLOSE,
+            kernel,
+            iterations=close_iterations,
         )
 
     def detect_contours(self):
@@ -161,11 +164,11 @@ class ShapeAnalyzer:
         self.detect_contours()
         self.filter_contours()
         self.json_result()
-        self.save_result()
 
     def visualize(self):
         self.draw_results()
         self.show_results()
+        self.save_result()
 
     def run(self, image_path=None):
         if image_path is not None:
