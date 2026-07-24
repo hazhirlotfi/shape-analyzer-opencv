@@ -5,6 +5,7 @@ import json
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = PROJECT_ROOT / "results"
+REFERENCE_SHAPES = PROJECT_ROOT / "reference_shapes"
 
 
 class ShapeAnalyzer:
@@ -63,22 +64,9 @@ class ShapeAnalyzer:
 
         for contour in self.contours:
             perimeter = cv2.arcLength(contour, True)
-            if self.shape_data and self.shape_data[0]["name"] == "circle / oval":
-                epsilon = 0.0001 * perimeter
-            else:
-                epsilon = 0.009 * perimeter
+            epsilon = 0.009 * perimeter
             approx = cv2.approxPolyDP(contour, epsilon, True)
-
             points = len(approx)
-
-            if points == 3:
-                shape_name = "triangle"
-            elif points == 4:
-                shape_name = "quadrilateral (probably square :)"
-            elif points == 5:
-                shape_name = "pentagon"
-            else:
-                shape_name = "circle / oval"
 
             self.shape_data.append(
                 {
